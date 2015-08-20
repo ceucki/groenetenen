@@ -1,8 +1,10 @@
 package be.vdab.services;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import be.vdab.dao.FiliaalDAO;
@@ -12,7 +14,7 @@ import be.vdab.valueobjects.PostcodeReeks;
 
 @Service
 @ReadOnlyTransactionalService
-public class FiliaalServiceImpl implements FiliaalService {
+class FiliaalServiceImpl implements FiliaalService {
 
 	private final FiliaalDAO filiaalDAO;
 
@@ -24,26 +26,25 @@ public class FiliaalServiceImpl implements FiliaalService {
 	@ModifyingTransactionalServiceMethod
 	@Override
 	public void create(Filiaal filiaal) {
-		filiaalDAO.create(filiaal);
-
+		filiaal.setId(filiaalDAO.save(filiaal).getId());
 	}
 
 	@Override
 	public Filiaal read(long id) {
-		return filiaalDAO.read(id);
+		return filiaalDAO.findOne(id);
 	}
 
 	@ModifyingTransactionalServiceMethod
 	@Override
 	public void update(Filiaal filiaal) {
-		filiaalDAO.update(filiaal);
+		filiaalDAO.save(filiaal);
 
 	}
 
 	@ModifyingTransactionalServiceMethod
 	@Override
 	public void delete(long id) {
-		Filiaal filiaal = filiaalDAO.read(id);
+		Filiaal filiaal = filiaalDAO.findOne(id);
 		if (filiaal != null) {
 			if (!filiaal.getWerknemers().isEmpty()) {
 				throw new FiliaalHeeftNogWerknemersException();
@@ -54,17 +55,33 @@ public class FiliaalServiceImpl implements FiliaalService {
 
 	@Override
 	public List<Filiaal> findAll() {
-		return filiaalDAO.findAll();
+		return filiaalDAO.findAll(new Sort("naam"));
 	}
 
 	@Override
 	public long findAantalFilialen() {
-		return filiaalDAO.findAantalFilialen();
+		return filiaalDAO.count();
 	}
 
 	@Override
 	public List<Filiaal> findByPostcodeReeks(PostcodeReeks reeks) {
-		return filiaalDAO.findByPostcodeReeks(reeks);
+		return filiaalDAO.findByAdresPostcodeBetweenOrderByNaam(reeks.getVanpostcode(), reeks.getTotpostcode());
 	}
+
+	@Override
+	public List<Filiaal> findNietAfgeschreven() {
+		return filiaalDAO.findByWaardeGebouwNot(BigDecimal.ZERO);
+	}
+
+	@Override
+	@ModifyingTransactionalServiceMethod
+	public void afschrijven(Iterable<Filiaal> filialen) {
+		for (Filiaal filiaal : filialen){
+			filiaal.afschrijven(); // je wijzigt een entity binnen een transactie.
+		}
+	
+	//
+	}
+	
 
 }

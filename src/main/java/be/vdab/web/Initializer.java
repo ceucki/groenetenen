@@ -2,6 +2,7 @@ package be.vdab.web;
 
 import javax.servlet.Filter;
 
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
@@ -31,7 +32,7 @@ public class Initializer extends AbstractAnnotationConfigDispatcherServletInitia
 	protected Filter[] getServletFilters() {
 		CharacterEncodingFilter utf8Filter = new CharacterEncodingFilter();
 		utf8Filter.setEncoding("UTF-8");
-		return new Filter[] { utf8Filter };
+		return new Filter[] { utf8Filter, new OpenEntityManagerInViewFilter() };
 	}
 
 }

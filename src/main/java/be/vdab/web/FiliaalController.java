@@ -73,22 +73,22 @@ public class FiliaalController {
 		return new ModelAndView(TOEVOEGEN_VIEW, "filiaal", new Filiaal());
 	}
 
-	@RequestMapping(path = "{id}", method = RequestMethod.GET)
-	ModelAndView read(@PathVariable long id) {
+	@RequestMapping(path = "{filiaal}", method = RequestMethod.GET)
+	ModelAndView read(@PathVariable Filiaal filiaal) {
 		ModelAndView modelAndView = new ModelAndView(FILIAAL_VIEW);
-		Filiaal filiaal = filiaalService.read(id);
 		if (filiaal != null) {
 			modelAndView.addObject(filiaal);
 		}
 		return modelAndView;
 	}
 
-	@RequestMapping(path = "{id}/verwijderen", method = RequestMethod.POST)
-	String delete(@PathVariable long id, RedirectAttributes redirectAttributes) {
-		Filiaal filiaal = filiaalService.read(id);
+	@RequestMapping(path = "{filiaal}/verwijderen", method = RequestMethod.POST)
+	String delete(@PathVariable Filiaal filiaal, RedirectAttributes redirectAttributes) {
+
 		if (filiaal == null) {
 			return REDIRECT_URL_FILIAAL_NIET_GEVONDEN;
 		}
+		long id = filiaal.getId();
 		try {
 			filiaalService.delete(id);
 			redirectAttributes.addAttribute("id", id).addAttribute("naam", filiaal.getNaam());
@@ -133,9 +133,8 @@ public class FiliaalController {
 		binder.initDirectFieldAccess();
 	}
 
-	@RequestMapping(path = "{id}/wijzigen", method = RequestMethod.GET)
-	ModelAndView updateForm(@PathVariable long id) {
-		Filiaal filiaal = filiaalService.read(id);
+	@RequestMapping(path = "{filiaal}/wijzigen", method = RequestMethod.GET)
+	ModelAndView updateForm(@PathVariable Filiaal filiaal) {
 		if (filiaal == null) {
 			return new ModelAndView(REDIRECT_URL_FILIAAL_NIET_GEVONDEN);
 		}
@@ -151,6 +150,26 @@ public class FiliaalController {
 		}
 		filiaalService.update(filiaal);
 		return REDIRECT_URL_NA_WIJZIGEN;
+	}
+
+	private static final String AFSCHRIJVEN_VIEW = "filialen/afschrijven";
+
+	@RequestMapping(path = "afschrijven", method = RequestMethod.GET)
+	ModelAndView afschrijvenForm() {
+		return new ModelAndView(AFSCHRIJVEN_VIEW, "filialen", filiaalService.findNietAfgeschreven())
+				.addObject(new AfschrijvenForm());
+	}
+
+	private static final String REDIRECT_NA_AFSCHRIJVEN = "redirect:/";
+
+	@RequestMapping(path = "afschrijven", method = RequestMethod.POST)
+	ModelAndView afschrijven(@Valid AfschrijvenForm afschrijvenForm, BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) { // als de gebruiker geen filiaal
+											// selecteerde
+			return new ModelAndView(AFSCHRIJVEN_VIEW, "filialen", filiaalService.findNietAfgeschreven());
+		}
+		filiaalService.afschrijven(afschrijvenForm.getFilialen());
+		return new ModelAndView(REDIRECT_NA_AFSCHRIJVEN);
 	}
 
 }

@@ -17,7 +17,7 @@ import be.vdab.entities.Filiaal;
 import be.vdab.valueobjects.Adres;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = { CreateTestDataSourceBean.class, CreateDAOBeans.class, }) 
+@ContextConfiguration(classes = { CreateTestDataSourceBean.class, CreateTestDAOBeans.class, }) 
 @Transactional // omringt elke test met een transactie, na de test rollback
 public class FiliaalDAOImplTest {
 	@Autowired
@@ -27,7 +27,7 @@ public class FiliaalDAOImplTest {
 	public void create() {
 		Filiaal filiaal = new Filiaal("TestNaam", true, BigDecimal.ONE, new Date(),
 				new Adres("Straat", "HuisNr", 1000, "Gemeente"));
-		filiaalDAO.create(filiaal);
+		filiaal = filiaalDAO.save(filiaal);
 		assertNotEquals(0, filiaal.getId()); // id moet autonumber hebben:
 	}
 }
