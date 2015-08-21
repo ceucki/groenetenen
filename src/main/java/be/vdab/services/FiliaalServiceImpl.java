@@ -5,11 +5,13 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+
 import org.springframework.stereotype.Service;
 
 import be.vdab.dao.FiliaalDAO;
 import be.vdab.entities.Filiaal;
 import be.vdab.exceptions.FiliaalHeeftNogWerknemersException;
+import be.vdab.mail.MailSender;
 import be.vdab.valueobjects.PostcodeReeks;
 
 @Service
@@ -19,14 +21,16 @@ class FiliaalServiceImpl implements FiliaalService {
 	private final FiliaalDAO filiaalDAO;
 
 	@Autowired
-	FiliaalServiceImpl(FiliaalDAO filiaalDAO) {
+	FiliaalServiceImpl(FiliaalDAO filiaalDAO, MailSender mailSender) {
 		this.filiaalDAO = filiaalDAO;
+		this.mailSender=mailSender;
 	}
 
 	@ModifyingTransactionalServiceMethod
 	@Override
 	public void create(Filiaal filiaal) {
 		filiaal.setId(filiaalDAO.save(filiaal).getId());
+		mailSender.nieuwFiliaalMail(filiaal);
 	}
 
 	@Override
@@ -82,6 +86,8 @@ class FiliaalServiceImpl implements FiliaalService {
 	
 	//
 	}
+	
+	private final MailSender mailSender;
 	
 
 }
